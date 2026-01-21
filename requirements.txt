@@ -1,0 +1,9 @@
+numpy==1.26.4
+pandas
+scikit-learn
+xgboost
+matplotlib
+seaborn
+mlflow
+category-encoders
+joblib
