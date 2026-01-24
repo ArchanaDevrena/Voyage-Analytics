@@ -54,6 +54,44 @@ class HotelRecommendationEngine:
             'company': user_data['company'].values[0]
         }
     
+    def get_user_stats(self, user_code):
+        """
+        Get statistical summary of user's booking history
+        
+        Args:
+            user_code: User identifier
+            
+        Returns:
+            Dictionary with user statistics
+        """
+        user_bookings = self.complete_df[self.complete_df['userCode'] == user_code]
+        
+        if len(user_bookings) == 0:
+            return {
+                'total_bookings': 0,
+                'avg_price': 0.0,
+                'avg_stay': 0.0,
+                'favorite_locations': {}
+            }
+        
+        total_bookings = len(user_bookings)
+        avg_price = user_bookings['price'].mean() if 'price' in user_bookings.columns else 0.0
+        avg_stay = user_bookings['days'].mean() if 'days' in user_bookings.columns else 0.0
+        
+        if 'location' in user_bookings.columns:
+            location_counts = user_bookings['location'].value_counts().to_dict()
+        elif 'place' in user_bookings.columns:
+            location_counts = user_bookings['place'].value_counts().to_dict()
+        else:
+            location_counts = {}
+        
+        return {
+            'total_bookings': total_bookings,
+            'avg_price': float(avg_price),
+            'avg_stay': float(avg_stay),
+            'favorite_locations': location_counts
+        }
+
     def get_user_booking_count(self, user_code):
         """Get number of bookings for experience-based adjustments"""
         user_bookings = self.complete_df[self.complete_df['userCode'] == user_code]
