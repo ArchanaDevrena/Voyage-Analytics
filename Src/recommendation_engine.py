@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import pickle
+import joblib
 from sklearn.metrics.pairwise import cosine_similarity
 import logging
 
@@ -501,6 +501,7 @@ class HotelRecommendationEngine:
 def load_recommendation_models(models_dir='models'):
     """
     Load only the essential models needed for hotel recommendations
+    (JOBLIB optimized)
     
     Args:
         models_dir (str): Directory containing the saved model files
@@ -508,22 +509,22 @@ def load_recommendation_models(models_dir='models'):
     Returns:
         dict: Dictionary containing all required models
     """
-    import pickle
     import os
+    import joblib
     
     models = {}
     
     required_files = [
-        'user_hotel_matrix.pkl',
-        'user_similarity.pkl',
-        'hotel_similarity.pkl',
-        'hotel_features.pkl',
-        'complete_data.pkl',
-        'users_data.pkl'
+        'user_hotel_matrix.joblib',
+        'user_similarity.joblib',
+        'hotel_similarity.joblib',
+        'hotel_features.joblib',
+        'complete_data.joblib',
+        'users_data.joblib'
     ]
     
-    logger.info("Loading recommendation models...")
-    print("Loading recommendation models...")
+    logger.info("Loading recommendation models (JOBLIB)...")
+    print("Loading recommendation models (JOBLIB)...")
     print("-" * 70)
     
     for filename in required_files:
@@ -534,11 +535,10 @@ def load_recommendation_models(models_dir='models'):
             logger.error(error_msg)
             raise FileNotFoundError(error_msg)
         
-        with open(filepath, 'rb') as f:
-            model_name = filename.replace('.pkl', '')
-            models[model_name] = pickle.load(f)
+        model_name = filename.replace('.joblib', '')
+        models[model_name] = joblib.load(filepath)
         
-        print(f"  Loaded: {filename}")
+        print(f"  ✓ Loaded: {filename}")
         logger.info(f"Loaded: {filename}")
     
     print("-" * 70)
