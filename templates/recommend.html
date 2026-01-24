@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Travel Recommendation</title>
+</head>
+<body>
+    <h2>Travel Recommendation System</h2>
+
+    <form action="/get_recommendation" method="post">
+        User ID: <input type="text" name="user"><br><br>
+        <button type="submit">Get Recommendation</button>
+    </form>
+
+    {% if recommendations %}
+        <h3>Recommended Places:</h3>
+        <ul>
+        {% for r in recommendations %}
+            <li>{{ r }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+
+    <br>
+    <a href="/">Back to Home</a>
+</body>
+</html>
