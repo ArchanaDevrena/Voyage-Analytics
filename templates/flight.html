@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flight Price Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <h2>Flight Price Prediction</h2>
+
+    <form action="/predict" method="post">
+
+        <label>User Code:</label>
+        <input type="number" name="user" required>
+
+        <label>From (Source City):</label>
+        <input type="text" name="from" placeholder="e.g. Recife (PE)" required>
+
+        <label>To (Destination City):</label>
+        <input type="text" name="to" placeholder="e.g. Florianopolis (SC)" required>
+
+        <button type="submit">Predict Price</button>
+    </form>
+
+    {% if prediction %}
+        <div class="result">
+            Predicted Flight Price: {{ prediction }}
+        </div>
+    {% endif %}
+
+    <a href="/">Back to Home</a>
+</div>
+
+</body>
+</html>
