@@ -7,13 +7,12 @@ import sys
 import os
 import glob  # ✅ ADD THIS IMPORT
 
-from database.db import get_connection
-import pandas as pd
+
+#-----------------------------------------------------------------------
+# DB
+from database.db import get_connection, insert_user_hotel
 
 def merge_users(dataset_users_df):
-    # -----------------------------
-    # Connect to DB safely
-    # -----------------------------
     conn = get_connection()
     cur = conn.cursor()
 
@@ -27,82 +26,54 @@ def merge_users(dataset_users_df):
     cur.close()
     conn.close()
 
-    # -----------------------------
-    # Convert DB users to DataFrame
-    # -----------------------------
+    # Convert DB users to dataframe
     if db_rows:
-        db_df = pd.DataFrame(
-            db_rows,
-            columns=["code", "name", "age", "gender", "company", "password"]
-        )
+        db_df = pd.DataFrame(db_rows, columns=[
+            "code","name","age","gender","company","password"
+        ])
         db_df["code"] = db_df["code"].astype(int)
     else:
-        db_df = pd.DataFrame(
-            columns=["code", "name", "age", "gender", "company", "password"]
-        )
-
-    # -----------------------------
+        db_df = pd.DataFrame(columns=["code","name","age","gender","company","password"])
+    
     # Dataset users
-    # -----------------------------
     dataset_df = dataset_users_df.copy()
     dataset_df["code"] = dataset_df["code"].astype(int)
 
-    # -----------------------------
-    # Merge users (DB overrides dataset)
-    # -----------------------------
-    merged = pd.concat(
-        [dataset_df, db_df.drop(columns=["password"])],
-        ignore_index=True
-    )
+    # Merge + remove duplicates (DB overrides)
+    merged = pd.concat([dataset_df, db_df.drop(columns=["password"])], ignore_index=True)
     merged = merged.drop_duplicates(subset=["code"], keep="last")
 
-    # -----------------------------
-    # Build credentials dictionary
-    # -----------------------------
+    # Build credentials
     credentials = {}
 
-    # 1️⃣ Dataset users (default password)
+    # Dataset users → demo password
     for _, r in dataset_df.iterrows():
-        credentials[int(r["code"])] = {
-            "name": r["name"],
-            "password": "password123"
-        }
+      code = int(r["code"])
+      credentials[code] = {
+        "name": r["name"],
+        "password": "password123"
+    }
 
-    # 2️⃣ DB users (real password overrides)
+     # 2️⃣ Then load DB users (REAL PASSWORD) → overwrite dataset 
     for code, name, age, gender, company, pwd in db_rows:
         credentials[int(code)] = {
-            "name": name,
-            "password": pwd
-        }
-
-    # -----------------------------
-    # Available user codes
-    # -----------------------------
+        "name": name,
+        "password": pwd   # REAL PASSWORD FROM NEON
+    }
+        
     available = sorted(merged["code"].tolist())
 
     return merged, available, credentials
+from database.db import get_connection
 
-#---------------------------------------------------------------------
-# Test USER
-#---------------------------------------------------------------------
-# conn = get_connection()
-# cur = conn.cursor()
-
-# cur.execute("""
-# INSERT INTO users (user_code, name, age, gender, company, password)
-# VALUES ('U1001','Test User',22,'female','Demo','password123')
-# """)
-
-# conn.commit()
-# cur.close()
-# conn.close()
-
+conn = get_connection()
+print("Neon DB Connected Successfully")
+conn.close()
 
 #---------------------------------------------------------------------
 # Load once globally (FAST)
 #---------------------------------------------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-flight_df = pd.read_csv(os.path.join(BASE_DIR, "data", "flights.csv"))
+flight_df = pd.read_csv("data/flights.csv")
 
 FROM_OPTIONS = sorted(flight_df["from"].dropna().unique())
 TO_OPTIONS = sorted(flight_df["to"].dropna().unique())
@@ -121,66 +92,35 @@ app = Flask(__name__,
             template_folder='templates')
 app.secret_key = os.environ.get('SECRET_KEY', 'va-dev-secret-change-in-production')
 
+
 # ===========================================================================
 # MODEL LOADING
 # ===========================================================================
-
 # -- Recommendation --
 print("Loading recommendation models...")
 rec_models = load_recommendation_models('models/recommendation')
 
-# ✅ CRITICAL FIX: Handle None or empty return
-if rec_models is None:
-    print("❌ WARNING: load_recommendation_models returned None!")
-    rec_models = {}
-
-# ✅ CRITICAL FIX: Check for required keys with safe defaults
-required_keys = ['user_hotel_matrix', 'user_similarity', 'hotel_similarity', 
-                 'hotel_features', 'complete_data', 'users_data']
-
-missing_keys = [key for key in required_keys if key not in rec_models]
-if missing_keys:
-    print(f"❌ WARNING: Missing model keys: {missing_keys}")
-    print("   Attempting to continue with available data...")
-
-# ✅ Safe initialization with .get() to prevent KeyError
 recommendation_engine = HotelRecommendationEngine(
-    user_hotel_matrix  = rec_models.get('user_hotel_matrix'),
-    user_similarity_df = rec_models.get('user_similarity'),
-    hotel_similarity_df= rec_models.get('hotel_similarity'),
-    hotel_features     = rec_models.get('hotel_features'),
-    complete_df        = rec_models.get('complete_data'),
-    users_df           = rec_models.get('users_data')
+    user_hotel_matrix  = rec_models['user_hotel_matrix'],
+    user_similarity_df = rec_models['user_similarity'],
+    hotel_similarity_df= rec_models['hotel_similarity'],
+    hotel_features     = rec_models['hotel_features'],
+    complete_df        = rec_models['complete_data'],
+    users_df           = rec_models['users_data']
 )
 print("All models loaded successfully.")
 
+rec_models['users_data'], available_users, user_credentials = merge_users(
+    rec_models['users_data']
+)
 
-
-#----------------------------------------------------------------------------------------
-# ✅ CRITICAL FIX: Only merge users if users_data exists
-if 'users_data' in rec_models and rec_models['users_data'] is not None:
-    rec_models['users_data'], available_users, user_credentials = merge_users(
-        rec_models['users_data']
-    )
-    recommendation_engine.users_df = rec_models['users_data']
-else:
-    print("⚠️ WARNING: No users_data available, creating empty structures")
-    available_users = []
-    user_credentials = {}
-#----------------------------------------------------------------------------------------
+recommendation_engine.users_df = rec_models['users_data']
 
 # -- Derived lookups (computed once at startup) --
-# ✅ CRITICAL FIX: Safe access to hotel_features
-if 'hotel_features' in rec_models and rec_models['hotel_features'] is not None:
-    available_locations = sorted(rec_models['hotel_features']['location'].unique().tolist())
-else:
-    available_locations = []
+available_locations = sorted(rec_models['hotel_features']['location'].unique().tolist())
 
 # CRITICAL FIX: Get user codes as integers
-if 'users_data' in rec_models and rec_models['users_data'] is not None:
-    available_users = sorted(rec_models['users_data']['code'].astype(int).unique().tolist())
-else:
-    available_users = []
+available_users = sorted(rec_models['users_data']['code'].astype(int).unique().tolist())
 
 # Debug: Print available user codes
 print("\n" + "="*70)
@@ -191,13 +131,14 @@ print(f"First 10 users: {available_users[:10]}")
 print(f"User code data type: {type(available_users[0]) if available_users else 'No users'}")
 print("="*70 + "\n")
 
-
 print("CREDENTIALS BUILT:")
 print(f"Total credentials: {len(user_credentials)}")
 print(f"Sample user codes: {list(user_credentials.keys())[:5]}")
 print(f"Credential key type: {type(list(user_credentials.keys())[0]) if user_credentials else 'No credentials'}")
 print("="*70 + "\n")
 
+
+#------------------------------------------------------------------------------------------------
 # ===========================================================================
 # AUTH HELPERS
 # ===========================================================================
@@ -632,6 +573,9 @@ def get_recommendations_api():
 def get_locations_api():
     return jsonify(success=True, locations=available_locations)
 
+@app.route('/health')
+def health():
+    return {"status": "ok"}, 200
 # ===========================================================================
 # RUN
 # ===========================================================================

@@ -465,7 +465,13 @@ def load_recommendation_models(models_dir='models/recommendation'):
         print(f"📂 Found {len(model_files)} model files")
         
         for filepath in model_files:
-            model_name = os.path.basename(filepath).replace('.pkl', '')
+            model_name = os.path.basename(filepath)
+            if model_name.endswith('.pkl'):
+                model_name = model_name[:-4]
+            elif model_name.endswith('.joblib'):
+                model_name = model_name[:-7]
+            model_name = model_name.strip()
+
             try:
                 models[model_name] = joblib.load(filepath)
                 print(f"  ✅ Loaded: {model_name}")

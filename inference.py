@@ -1,13 +1,13 @@
 import joblib
 import pandas as pd
-import mlflow  # ADD THIS LINE
+import mlflow
 from mlflow.tracking import MlflowClient
 from preprocess import preprocess_data
 
 # --- MLflow setup ---
 mlflow.set_tracking_uri("sqlite:///../mlflow.db")  # relative to repo root
 EXPERIMENT_NAME = "Flight Price Prediction"
-MODEL_PATH = "models/flight/flight_price_model.pkl"  # fallback
+MODEL_PATH = "models/flight/flight_model_depth5_lr0.2.pkl"  # fallback
 
 def load_best_model():
     import mlflow
@@ -16,7 +16,7 @@ def load_best_model():
     import os
 
     EXPERIMENT_NAME = "Flight Price Prediction"
-    LOCAL_MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", "flight", "flight_model_depth5_lr0.2.pkl")
+    LOCAL_MODEL_PATH = os.path.join("models", "flight","flight_model_depth5_lr0.2.pkl")
 
     try:
         mlflow.set_tracking_uri("sqlite:///mlflow.db")
