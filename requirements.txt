@@ -1,3 +1,5 @@
+# Streamlit Cloud UI
+streamlit==1.31.0
 # Core ML stack
 numpy==1.24.3
 pandas==1.5.3
