@@ -46,11 +46,13 @@ Voyage Analytics addresses this by:
 | Layer | Technology |
 |---|---|
 | Frontend | Streamlit |
-| Backend | Python 3.x |
+| Backend | Python 3.x, Flask (REST API) |
 | Machine Learning | Scikit-learn |
 | Model Tracking | MLflow |
-| Database | PostgreSQL / CSV |
-| Deployment | Streamlit Cloud |
+| Database | PostgreSQL |
+| Containerization | Docker, Docker Compose |
+| Orchestration | Kubernetes |
+| Deployment | Streamlit Cloud / Docker / Kubernetes |
 | Version Control | Git and GitHub |
 
 ---
@@ -140,8 +142,11 @@ This module is the analytical core of the platform:
 - Interactive travel analytics dashboard with demographic and booking insights
 - Secure user registration and login with session management
 - MLflow integration for experiment tracking and model versioning
+- Flask REST API layer for modular backend access
 - Responsive, mobile-friendly interface built with Streamlit
 - PostgreSQL database for user and travel data persistence
+- Containerized deployment via Docker and Docker Compose
+- Kubernetes-ready with production deployment manifests
 - Streamlit Cloud deployment for public accessibility
 
 ---
@@ -151,32 +156,48 @@ This module is the analytical core of the platform:
 ```
 Voyage-Analytics/
 │
-├── app.py                        # Main Streamlit application entry point
-├── inference.py                  # Model inference logic
-├── recommendation_engine.py      # Collaborative filtering recommendation module
+├── data/                                   # Raw datasets
+│   ├── flights.csv                         # Historical flight pricing data
+│   ├── hotels.csv                          # Hotel records and metadata
+│   └── users.csv                           # User data for offline fallback
 │
-├── models/
-│   ├── flight_model.pkl          # Serialized trained ML model
-│   └── recommendation/           # Saved recommendation model artifacts
-│       ├── user_hotel_matrix.pkl
-│       ├── user_similarity.pkl
-│       ├── hotel_similarity.pkl
-│       ├── hotel_features.pkl
-│       ├── complete_data.pkl
-│       └── users_data.pkl
+├── database/                               # Database utilities
+│   ├── db.py                               # PostgreSQL connection and query logic
+│   └── test_insert.py                      # Database insertion test script
 │
-├── data/
-│   └── flights.csv               # Historical flight dataset
+├── flask_api/                              # REST API layer (Flask)
+│   └── app.py                              # API routes and endpoint definitions
 │
-├── database/
-│   └── db.py                     # Database connection and query utilities
+├── k8s/                                    # Kubernetes deployment configuration
+│   └── deployment.yaml                     # K8s deployment and service manifest
 │
-├── mlruns/                       # MLflow experiment tracking directory
+├── models/                                 # Trained model artifacts
+│   ├── flight/                             # Flight price prediction models
+│   │   ├── flight_model.json               # Model architecture (JSON format)
+│   │   ├── flight_model.pkl                # Serialized model (primary)
+│   │   ├── flight_model_depth5_lr0.2.json  # Tuned model variant (JSON)
+│   │   └── flight_model_depth5_lr0.2.pkl   # Tuned model variant (serialized)
+│   └── recommendation/                     # Recommendation engine artifacts
+│       ├── complete_data.joblib            # Full dataset for inference
+│       ├── hotel_features.joblib           # Encoded hotel feature matrix
+│       ├── hotel_similarity.joblib         # Item-based similarity matrix
+│       ├── user_hotel_matrix.joblib        # User-hotel interaction matrix
+│       ├── user_similarity.joblib          # User-based similarity matrix
+│       └── users_data.joblib               # User profile data
 │
-├── screenshots/                  # UI screenshots for documentation
+├── notebooks/                              # Jupyter development notebooks
+│   ├── flight_price_model.ipynb            # Flight model training and evaluation
+│   └── Recommendation system.ipynb         # Recommendation engine development
 │
-├── requirements.txt              # Python dependency list
-└── README.md                     # Project documentation
+├── templates/                              # HTML templates (Flask frontend)
+│
+├── flight_price_model.py                   # Flight model training script
+├── inference.py                            # Real-time model inference module
+├── app.py                                  # Streamlit application (main entry point)
+├── Dockerfile                              # Docker container configuration
+├── docker-compose.yml                      # Multi-service Docker orchestration
+├── README.md                               # Project documentation
+└── .gitignore                              # Git ignore rules
 ```
 
 ---
@@ -187,14 +208,16 @@ Voyage-Analytics/
 
 - Python 3.8 or higher
 - pip package manager
-- PostgreSQL (optional, for full database functionality)
+- PostgreSQL (required for user management and booking data)
+- Docker and Docker Compose (for containerized deployment)
+- kubectl (for Kubernetes deployment, optional)
 - Git
 
 ### Step 1 — Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/voyage-analytics.git
-cd voyage-analytics
+git clone https://github.com/VoyageAnalytics/Voyage-Analytics.git
+cd Voyage-Analytics
 ```
 
 ### Step 2 — Create a Virtual Environment
@@ -223,21 +246,13 @@ Create a `.streamlit/secrets.toml` file with the following structure:
 DATABASE_URL = "postgresql://username:password@host:port/dbname"
 ```
 
-If no database is configured, the application falls back to CSV-based user data.
+If no database is configured, the application falls back to CSV-based user data from the `data/` directory.
 
 ---
 
 ## Running the Application
 
-### Start MLflow Tracking Server (Optional)
-
-```bash
-mlflow ui
-```
-
-MLflow UI will be accessible at `http://localhost:5000`
-
-### Launch the Streamlit Application
+### Option 1 — Streamlit (Local Development)
 
 ```bash
 streamlit run app.py
@@ -245,16 +260,55 @@ streamlit run app.py
 
 The application will open in your default browser at `http://localhost:8501`
 
+### Option 2 — Flask API
+
+```bash
+cd flask_api
+python app.py
+```
+
+The REST API will be available at `http://localhost:5000`
+
+### Option 3 — Docker Compose (Recommended)
+
+```bash
+docker-compose up --build
+```
+
+This starts all services (Streamlit frontend, Flask API, and database) in coordinated containers.
+
+### Option 4 — Kubernetes
+
+```bash
+kubectl apply -f k8s/deployment.yaml
+```
+
+Refer to the `k8s/` directory for service and ingress configuration details.
+
+### Default Credentials (Demo Users)
+
+All pre-loaded dataset users share the following default password:
+
+```
+Password: password123
+```
+
+Users are identified by a numeric user code starting from User 0. New users can register directly through the application interface.
+
+---
+
 ## Deployment
 
-The application is deployed on **Streamlit Cloud** and is publicly accessible via a hosted URL. The deployment process involves:
+The platform supports multiple deployment targets:
 
-1. Pushing the repository to GitHub
-2. Connecting the repository to Streamlit Cloud via the dashboard
-3. Configuring secrets (database URL) through the Streamlit Cloud secrets manager
-4. Automatic deployment on each push to the main branch
+**Streamlit Cloud**
+Connect the repository to Streamlit Cloud via the dashboard, configure secrets (database URL) through the secrets manager, and the app deploys automatically on each push to the main branch.
 
-MLflow experiment tracking is maintained locally or on a separate tracking server, independent of the Streamlit deployment.
+**Docker**
+The included `Dockerfile` and `docker-compose.yml` enable containerized deployment to any Docker-compatible environment including AWS ECS, Google Cloud Run, and Azure Container Instances.
+
+**Kubernetes**
+The `k8s/deployment.yaml` manifest defines the deployment, service, and resource configuration for production-grade orchestration via Kubernetes. Apply directly with `kubectl` or integrate into a CI/CD pipeline.
 
 ---
 
@@ -271,7 +325,3 @@ Voyage Analytics tackles this problem by applying supervised machine learning to
 Voyage Analytics represents a complete, production-oriented travel intelligence platform that brings together machine learning, data analytics, and modern web deployment in a unified system. The platform is built to be extensible — new models can be versioned and deployed through MLflow, new data sources can be integrated into the pipeline, and the recommendation engine can be refined as user data grows.
 
 The system demonstrates how data science and engineering can be combined to create practical tools that empower users with information they can act on, reducing guesswork and improving decision-making in the context of travel planning.
-
----
-
-*For issues, contributions, or questions, please open a GitHub issue or submit a pull request.*
