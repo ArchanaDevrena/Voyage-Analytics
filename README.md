@@ -1,266 +1,277 @@
-# ✈️ Voyage Analytics
-Travel Intelligence & Prediction Platform
+# Voyage Analytics
+### Travel Intelligence and Prediction Platform
 
-Voyage Analytics is a smart travel intelligence web application designed to analyze travel data, predict flight prices, and provide personalized travel recommendations. The platform integrates Machine Learning models with an interactive web interface to deliver data-driven travel insights.
+---
 
-## 📌 Project Overview
+## Overview
 
-The basic concept of this project Voyage Analytics is to provide an intelligent travel analytics platform that helps users predict flight prices, get personalized recommendations, and analyze travel trends using Machine Learning.
+Voyage Analytics is a data-driven travel intelligence platform that integrates machine learning with an interactive web interface to deliver actionable travel insights. The platform enables users to predict flight prices in real time, receive personalized hotel recommendations, and explore analytical dashboards — all powered by trained ML models and a clean, responsive UI built with Streamlit.
 
-The system integrates ML-based flight price prediction, user management, and interactive dashboards. The application has been deployed using Streamlit and includes MLflow integration for experiment tracking and model management.
+The system is designed with scalability and modularity in mind, incorporating MLflow for experiment tracking, PostgreSQL for user management, and a collaborative filtering engine for recommendation generation.
 
-## 🛠 Tools and Technologies
+---
 
-Frontend : Streamlit
-Backend : Python
-Machine Learning : Scikit-learn
-Model Tracking : MLflow
-Database : CSV / Database Integration (users & travel data)
-Deployment : Streamlit Cloud / Local Streamlit Server
-Version Control : Git & GitHub
+## Table of Contents
 
-## 🤖 Machine Learning Integration
+1. [Project Objectives](#project-objectives)
+2. [Technology Stack](#technology-stack)
+3. [System Architecture](#system-architecture)
+4. [Machine Learning Pipeline](#machine-learning-pipeline)
+5. [System Modules](#system-modules)
+6. [Key Features](#key-features)
+7. [Project Structure](#project-structure)
+8. [Setup and Installation](#setup-and-installation)
+9. [Running the Application](#running-the-application)
+10. [Deployment](#deployment)
+11. [Problem Statement](#problem-statement)
+12. [Conclusion](#conclusion)
 
-The system includes:
+---
 
-Flight Price Prediction Model
+## Project Objectives
 
-MLflow experiment tracking
+Flight ticket prices fluctuate continuously due to demand elasticity, seasonal variation, airline pricing strategies, and broader market dynamics. Travelers frequently lack the analytical tools to make informed booking decisions.
 
-Model versioning
+Voyage Analytics addresses this by:
 
-Saved .pkl trained model files
+- Predicting flight prices using a trained machine learning model
+- Providing intelligent, user-specific travel recommendations
+- Tracking model performance and experiment history using MLflow
+- Delivering an interactive, user-friendly interface accessible via web browser
 
-Real-time inference using trained model
+---
 
-Feature engineering pipeline
+## Technology Stack
 
-Data preprocessing and transformation
+| Layer | Technology |
+|---|---|
+| Frontend | Streamlit |
+| Backend | Python 3.x |
+| Machine Learning | Scikit-learn |
+| Model Tracking | MLflow |
+| Database | PostgreSQL / CSV |
+| Deployment | Streamlit Cloud |
+| Version Control | Git and GitHub |
 
-The ML model predicts flight prices based on:
+---
 
-Source
+## System Architecture
 
-Destination
+The platform is divided into three primary layers:
 
-Airline
+**Presentation Layer**
+The Streamlit-based frontend handles user interaction, form input, and visualization rendering. It communicates with the backend logic to display predictions, recommendations, and analytics dashboards.
 
-Distance
+**Application Layer**
+The Python backend manages authentication, request routing, data preprocessing, and model inference. It interfaces with both the database and the trained ML model.
 
-Duration
+**Data Layer**
+User data and travel records are stored in a PostgreSQL database. Model artifacts are versioned and stored via MLflow. Raw travel data is maintained as structured CSV files.
 
-Travel Date
+---
 
-Flight Type
+## Machine Learning Pipeline
 
-## 🧩 System Modules
+The ML pipeline processes historical flight data through the following stages:
 
-The system has three main modules:
+1. Data Collection — Aggregation of flight records including route, timing, and pricing
+2. Data Cleaning — Handling of missing values, outliers, and format inconsistencies
+3. Feature Engineering — Construction of derived features including distance buckets, time-of-week indicators, and seasonal flags
+4. Model Training — Regression model trained using Scikit-learn on historical pricing data
+5. Model Evaluation — Cross-validation and performance metrics including MAE and RMSE
+6. Experiment Tracking — All training runs logged to MLflow with parameters, metrics, and artifacts
+7. Model Serialization — Final model saved as a `.pkl` file for inference
+8. Deployment — Model served in real time via Streamlit using the `inference.py` module
 
-User
+**Prediction Features**
 
-Admin
+The model predicts flight prices based on the following inputs:
 
-Prediction & Recommendation Engine
+- Origin city
+- Destination city
+- Airline / agency
+- Flight distance (km)
+- Flight duration (hours)
+- Travel date
+- Flight type (economy, business, etc.)
 
-## 👤 User Module
+---
 
-The User module is designed for travelers who want to:
+## System Modules
 
-Register and login securely
+### User Module
 
-Predict flight prices
+The User module is designed for travelers and provides the following capabilities:
 
-Get travel recommendations
+- Secure registration and login
+- Real-time flight price prediction
+- Personalized hotel recommendations
+- Travel insights and analytics dashboard
+- User profile management
 
-View travel insights
+Authentication is handled securely with hashed credentials stored in the database. Existing dataset users are pre-loaded with a default password for demonstration purposes.
 
-Access personalized suggestions
+### Admin Module
 
-Users can enter flight details such as source, destination, distance, duration, and airline to get real-time price predictions powered by the ML model.
+The Admin module provides system administrators with tools to manage and monitor the platform:
 
-The module securely stores user details and manages authentication.
+- View and manage registered user records
+- Monitor prediction usage and system activity
+- Manage and update travel datasets
+- Track MLflow experiment history
+- Update or replace deployed model versions
 
-## 🛠 Admin Module
+### Prediction and Recommendation Module
 
-The Admin module is designed for system administrators who manage:
+This module is the analytical core of the platform:
 
-User records
+- **Flight Price Prediction** — Real-time inference using the trained ML model
+- **Hotel Recommendations** — Hybrid collaborative filtering using user similarity and item-based methods
+- **Data Preprocessing** — Automated pipeline for feature transformation and encoding
+- **Adaptive Scoring** — Recommendation scores adjusted based on user demographics and booking history
+- **MLflow Logging** — All inference events and experiments tracked for audit and improvement
 
-Travel data
+---
 
-Model updates
+## Key Features
 
-System monitoring
+- Real-time flight price prediction powered by a trained regression model
+- Personalized hotel recommendation engine using hybrid collaborative filtering
+- Interactive travel analytics dashboard with demographic and booking insights
+- Secure user registration and login with session management
+- MLflow integration for experiment tracking and model versioning
+- Responsive, mobile-friendly interface built with Streamlit
+- PostgreSQL database for user and travel data persistence
+- Streamlit Cloud deployment for public accessibility
 
-Admins can:
+---
 
-View registered users
+## Project Structure
 
-Monitor prediction usage
-
-Manage datasets
-
-Track MLflow experiments
-
-Update models when required
-
-## 🧠 Prediction & Recommendation Module
-
-This module handles:
-
-Flight price prediction using trained ML model
-
-Personalized travel recommendations
-
-Data preprocessing pipeline
-
-Feature transformation
-
-Model inference
-
-MLflow experiment logging
-
-It ensures accurate and optimized price predictions based on historical travel data.
-
-## 🚀 Features
-
-✈️ Flight Price Prediction
-
-📊 Travel Analytics Dashboard
-
-🤖 MLflow Integration
-
-🔐 Secure Login & Registration
-
-📱 Mobile Screen Friendly Interface
-
-🧠 Intelligent Recommendation System
-
-📈 Model Experiment Tracking
-
-☁️ Streamlit Deployment
-
-📸 UI Screenshots Included
-
-## 🏗 ML Pipeline
-
-Data Collection
-
-Data Cleaning
-
-Feature Engineering
-
-Model Training
-
-Model Evaluation
-
-MLflow Experiment Tracking
-
-Model Saving (.pkl file)
-
-Deployment with Streamlit
-
-Real-time Prediction
-
-## 🌐 Deployment
-
-The application is deployed using:
-
-Streamlit
-
-MLflow for experiment tracking
-
-GitHub for version control
-
-The deployed app allows users to:
-
-Register/Login
-
-Predict flight prices
-
-Get recommendations
-
-Interact with dashboards
-
-## ▶️ How to Run the Project
-### 1️⃣ Clone the Repository
-git clone https://github.com/your-username/voyage-analytics.git
-cd voyage-analytics
-
-### 2️⃣ Create Virtual Environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-### 3️⃣ Install Dependencies
-pip install -r requirements.txt
-
-### 4️⃣ Run MLflow (Optional – for tracking)
-mlflow ui
-
-
-Then open:
-
-http://localhost:5000
-
-### 5️⃣ Run Streamlit App
-streamlit run app.py
-
-### 📁 Project Structure
+```
 Voyage-Analytics/
 │
-├── app.py
-├── inference.py
-├── database/
-│   ├── db.py
-│   └── users.csv
+├── app.py                        # Main Streamlit application entry point
+├── inference.py                  # Model inference logic
+├── recommendation_engine.py      # Collaborative filtering recommendation module
+│
 ├── models/
-│   └── flight_model.pkl
+│   ├── flight_model.pkl          # Serialized trained ML model
+│   └── recommendation/           # Saved recommendation model artifacts
+│       ├── user_hotel_matrix.pkl
+│       ├── user_similarity.pkl
+│       ├── hotel_similarity.pkl
+│       ├── hotel_features.pkl
+│       ├── complete_data.pkl
+│       └── users_data.pkl
+│
 ├── data/
-├── screenshots/
-├── requirements.txt
-└── README.md
+│   └── flights.csv               # Historical flight dataset
+│
+├── database/
+│   └── db.py                     # Database connection and query utilities
+│
+├── mlruns/                       # MLflow experiment tracking directory
+│
+├── screenshots/                  # UI screenshots for documentation
+│
+├── requirements.txt              # Python dependency list
+└── README.md                     # Project documentation
+```
 
-### 📸 Screenshots
+---
 
-Login & Register Page
+## Setup and Installation
 
-Flight Prediction Page
+### Prerequisites
 
-Recommendation Dashboard
+- Python 3.8 or higher
+- pip package manager
+- PostgreSQL (optional, for full database functionality)
+- Git
 
-MLflow Tracking UI
+### Step 1 — Clone the Repository
 
-Streamlit Deployment View
+```bash
+git clone https://github.com/your-username/voyage-analytics.git
+cd voyage-analytics
+```
 
-(Screenshots included in the project folder)
+### Step 2 — Create a Virtual Environment
 
-### 🎯 Problem Statement
+```bash
+python -m venv venv
 
-Flight ticket prices fluctuate frequently due to demand, seasonality, airline pricing strategies, and travel patterns. Travelers often struggle to determine the best time to book flights.
+# Activate on macOS / Linux
+source venv/bin/activate
 
-Voyage Analytics solves this problem by:
+# Activate on Windows
+venv\Scripts\activate
+```
 
-Predicting flight prices using Machine Learning
+### Step 3 — Install Dependencies
 
-Providing intelligent travel recommendations
+```bash
+pip install -r requirements.txt
+```
 
-Tracking model performance using MLflow
+### Step 4 — Configure Environment Variables
 
-Delivering an interactive and user-friendly web interface
+Create a `.streamlit/secrets.toml` file with the following structure:
 
-### 🌟 Conclusion
+```toml
+DATABASE_URL = "postgresql://username:password@host:port/dbname"
+```
 
-Voyage Analytics is a complete Travel Intelligence Platform that combines:
+If no database is configured, the application falls back to CSV-based user data.
 
-Machine Learning
+---
 
-Data Analytics
+## Running the Application
 
-Web Deployment
+### Start MLflow Tracking Server (Optional)
 
-Model Tracking
+```bash
+mlflow ui
+```
 
-User Authentication
+MLflow UI will be accessible at `http://localhost:5000`
 
-The system empowers travelers with accurate price predictions and smart travel insights while maintaining scalable and production-ready architecture.
+### Launch the Streamlit Application
+
+```bash
+streamlit run app.py
+```
+
+The application will open in your default browser at `http://localhost:8501`
+
+## Deployment
+
+The application is deployed on **Streamlit Cloud** and is publicly accessible via a hosted URL. The deployment process involves:
+
+1. Pushing the repository to GitHub
+2. Connecting the repository to Streamlit Cloud via the dashboard
+3. Configuring secrets (database URL) through the Streamlit Cloud secrets manager
+4. Automatic deployment on each push to the main branch
+
+MLflow experiment tracking is maintained locally or on a separate tracking server, independent of the Streamlit deployment.
+
+---
+
+## Problem Statement
+
+Flight ticket pricing is inherently dynamic and opaque. Prices shift based on factors including booking lead time, route demand, seat availability, and seasonal patterns. Most travelers book reactively rather than strategically, often paying more than necessary.
+
+Voyage Analytics tackles this problem by applying supervised machine learning to historical flight data, enabling the system to learn pricing patterns and generate accurate predictions for user-specified routes and dates. Combined with a recommendation engine that personalizes hotel suggestions based on user demographics and past behavior, the platform transforms raw travel data into practical, decision-ready intelligence.
+
+---
+
+## Conclusion
+
+Voyage Analytics represents a complete, production-oriented travel intelligence platform that brings together machine learning, data analytics, and modern web deployment in a unified system. The platform is built to be extensible — new models can be versioned and deployed through MLflow, new data sources can be integrated into the pipeline, and the recommendation engine can be refined as user data grows.
+
+The system demonstrates how data science and engineering can be combined to create practical tools that empower users with information they can act on, reducing guesswork and improving decision-making in the context of travel planning.
+
+---
+
+*For issues, contributions, or questions, please open a GitHub issue or submit a pull request.*
